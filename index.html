@@ -84,7 +84,7 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
   <div class="card">
     <div class="drop" id="drop">
       <b>Drop a file here or tap to choose</b>
-      <small>PNG, JPG, WebP, or PDF &middot; images auto-resized &middot; PDFs up to 4&nbsp;MB</small>
+      <small>PNG, JPG, WebP, or PDF &middot; images auto-resized &middot; PDFs up to 2.5&nbsp;MB</small>
       <input type="file" id="file" accept="image/png,image/jpeg,image/webp,application/pdf" style="display:none">
     </div>
     <div class="preview" id="preview" style="display:none"></div>
@@ -173,7 +173,7 @@ function clearErr(){ errBox.style.display = 'none'; }
 function handleFile(f){
   clearErr(); fileNameStr = f.name;
   if (f.type === 'application/pdf'){
-    if (f.size > 4*1024*1024){ showErr('PDF is over 4 MB — export a smaller version or a single page.'); return; }
+    if (f.size > 2500*1024){ showErr('PDF is over 2.5 MB — export a smaller version, a single page, or upload a screenshot/PNG instead.'); return; }
     var r = new FileReader();
     r.onload = function(){ fileData = r.result.split(',')[1]; fileMedia = 'application/pdf'; showPreview(null, f); };
     r.readAsDataURL(f);
@@ -221,7 +221,18 @@ goBtn.addEventListener('click', function(){
       isTemplate: document.getElementById('istpl').checked,
       context: document.getElementById('ctx').value.trim()
     })
-  }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+  }).then(function(r){
+      return r.text().then(function(t){
+        var j;
+        try { j = JSON.parse(t); }
+        catch(e){
+          throw new Error(r.status === 404
+            ? 'Function not found — check that evaluate.js is at netlify/functions/evaluate.js and the site is Git-connected.'
+            : 'Server returned status ' + r.status + ' (non-JSON). Likely the upload was too large — try a smaller file or a PNG — or check the Netlify function logs.');
+        }
+        return {ok:r.ok, j:j};
+      });
+    })
     .then(function(res){
       document.getElementById('spin').style.display = 'none';
       goBtn.disabled = false;
