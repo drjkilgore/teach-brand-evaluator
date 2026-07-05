@@ -263,11 +263,15 @@ document.getElementById('test').addEventListener('click', function(){
   if (!sbReady()){ showErr('Supabase is not configured — set SUPABASE_URL and SUPABASE_ANON_KEY at the top of index.html.'); return; }
   out.style.display = 'block';
   out.textContent = 'Testing connection…';
+  var tctrl = new AbortController();
+  var ttimer = setTimeout(function(){ tctrl.abort(); }, 20000);
   fetch(SUPABASE_URL + '/functions/v1/evaluate', {
     method:'GET',
+    signal: tctrl.signal,
     headers:{ 'apikey': SUPABASE_ANON_KEY, 'Authorization':'Bearer ' + SUPABASE_ANON_KEY }
   }).then(function(r){ return r.text().then(function(t){ return {s:r.status, t:t}; }); })
     .then(function(res){
+      clearTimeout(ttimer);
       var j; try { j = JSON.parse(res.t); } catch(e){ j = null; }
       if (j && j.version){
         out.textContent = 'Function: ' + j.version +
@@ -281,7 +285,12 @@ document.getElementById('test').addEventListener('click', function(){
         out.textContent = 'Unexpected response (' + res.s + '): ' + res.t.slice(0,180);
       }
     })
-    .catch(function(e){ out.textContent = 'Failed to reach the function at all: ' + e.message + ' — check SUPABASE_URL.'; });
+    .catch(function(e){
+      clearTimeout(ttimer);
+      out.textContent = (e.name === 'AbortError')
+        ? 'The request to the function HUNG for 20s with no response — this is a gateway/CORS stall, not your code. Fix: Supabase → Edge Functions → evaluate → turn OFF "Verify JWT", then test again.'
+        : 'Failed to reach the function at all: ' + e.message + ' — check SUPABASE_URL.';
+    });
 });
 
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
