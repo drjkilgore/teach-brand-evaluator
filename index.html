@@ -40,7 +40,6 @@ button.go:disabled{background:var(--silver);cursor:default}
 .spin .dot:nth-child(2){animation-delay:.2s;background:var(--red)}
 .spin .dot:nth-child(3){animation-delay:.4s;background:var(--navy)}
 @keyframes b{to{transform:translateY(-7px)}}
-/* results */
 #results{display:none}
 .scoregrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0 6px}
 .schip{border:1px solid var(--silver);border-radius:10px;padding:12px;text-align:center}
@@ -79,7 +78,7 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
 <header><div class="wrap"><div class="logo"><span class="hash">#</span>TEACH</div><div class="apptag">Brand Evaluator</div></div></header>
 <div class="wrap">
   <h1>Evaluate a Marketing Piece</h1>
-  <div class="lede">Upload any flyer, banner, card, document, or slide. It's scored against the #TEACH brand standards and format-specific effectiveness criteria from the Marketing Collateral Review — with a prioritized fix list to reach 9&ndash;10.</div>
+  <div class="lede">Upload any flyer, banner, card, document, or slide. It's scored against the #TEACH brand standards and format-specific effectiveness criteria from the Marketing Collateral Review &mdash; with a prioritized fix list to reach 9&ndash;10.</div>
 
   <div class="card">
     <div class="drop" id="drop">
@@ -91,8 +90,8 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
 
     <label for="ptype">Piece type</label>
     <select id="ptype">
-      <option value="candidate_flyer">Flyer — candidate recruitment</option>
-      <option value="district_b2b">Flyer / one-pager — district (B2B)</option>
+      <option value="candidate_flyer">Flyer &mdash; candidate recruitment</option>
+      <option value="district_b2b">Flyer / one-pager &mdash; district (B2B)</option>
       <option value="banner">Retractable banner</option>
       <option value="business_card">Business card</option>
       <option value="promo_item">Promo item (pen, giveaway)</option>
@@ -105,7 +104,7 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
       <option value="other">Other</option>
     </select>
 
-    <div class="chk"><input type="checkbox" id="istpl"><span>This is a <b>template</b> — placeholder contact fields are expected and should not be penalized</span></div>
+    <div class="chk"><input type="checkbox" id="istpl"><span>This is a <b>template</b> &mdash; placeholder contact fields are expected and should not be penalized</span></div>
 
     <label for="ctx">Context for the evaluator (optional)</label>
     <textarea id="ctx" placeholder="e.g., For a Detroit career fair table; audience is paraprofessionals; will be printed 11x17"></textarea>
@@ -114,14 +113,14 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
     <div class="err" id="err"></div>
   </div>
 
-  <div class="spin" id="spin">Scoring against the brand board <span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  <div class="spin" id="spin">Scoring against the brand board &mdash; typically 20&ndash;40 seconds <span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
 
   <div class="card" id="results">
     <div id="summary" class="lede" style="margin-bottom:4px"></div>
     <div class="scoregrid">
-      <div class="schip"><div class="n navy" id="sBrand">–</div><div class="l">Brand Compliance</div></div>
-      <div class="schip"><div class="n red" id="sEff">–</div><div class="l" id="sEffLabel">Effectiveness</div></div>
-      <div class="schip"><div class="n blue" id="sComp">–</div><div class="l">Composite</div></div>
+      <div class="schip"><div class="n navy" id="sBrand">&ndash;</div><div class="l">Brand Compliance</div></div>
+      <div class="schip"><div class="n red" id="sEff">&ndash;</div><div class="l" id="sEffLabel">Effectiveness</div></div>
+      <div class="schip"><div class="n blue" id="sComp">&ndash;</div><div class="l">Composite</div></div>
     </div>
     <div class="verdict" id="verdict"></div>
 
@@ -133,9 +132,9 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
     <div class="seclab red">Gaps</div>
     <ul class="pts" id="cons"></ul>
 
-    <div class="seclab">Path to 9&ndash;10 — prioritized fixes</div>
+    <div class="seclab">Path to 9&ndash;10 &mdash; prioritized fixes</div>
     <div id="fixes"></div>
-    <div class="projected"><span style="font-weight:700;font-size:13px;letter-spacing:.08em">PROJECTED SCORE AFTER FIXES</span><span class="n" id="sProj">–</span></div>
+    <div class="projected"><span style="font-weight:700;font-size:13px;letter-spacing:.08em">PROJECTED SCORE AFTER FIXES</span><span class="n" id="sProj">&ndash;</span></div>
     <div class="ceiling" id="ceiling" style="display:none"></div>
   </div>
 
@@ -149,10 +148,10 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
 
 <script>
 /* ================= CONFIG =================
-   Supabase is OPTIONAL (evaluation history). Leave blank to run without it.
-   See README-DEPLOY for the one-table SQL setup. */
-var SUPABASE_URL = "https://msojmpxesbyegbxloday.supabase.co";      // e.g. "https://xxxx.supabase.co"
-var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zb2ptcHhlc2J5ZWdieGxvZGF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzQ5NTgsImV4cCI6MjA5NTcxMDk1OH0.SBfypZfTcR5NO8q76ImnGug7WpWJnOgAt1kWZYPqAbo"; // anon public key
+   REQUIRED. The evaluation runs in a Supabase Edge Function named "evaluate";
+   this page calls it directly and reads history from the evaluations table. */
+var SUPABASE_URL = "";      // e.g. "https://xxxx.supabase.co"
+var SUPABASE_ANON_KEY = ""; // anon public key
 /* ========================================== */
 
 var fileData = null, fileMedia = null, fileNameStr = "";
@@ -209,50 +208,52 @@ function showPreview(url, f){
 goBtn.addEventListener('click', function(){
   if (!fileData) return;
   clearErr();
+  if (!sbReady()){ showErr('Supabase is not configured — set SUPABASE_URL and SUPABASE_ANON_KEY at the top of index.html.'); return; }
   goBtn.disabled = true;
   document.getElementById('results').style.display = 'none';
-  var spin = document.getElementById('spin');
-  spin.style.display = 'block';
-  spin.childNodes[0].nodeValue = 'Scoring against the brand board \u2014 typically 20\u201340 seconds ';
+  document.getElementById('spin').style.display = 'block';
 
-  var jobId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
-            : 'job-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  var ctrl = new AbortController();
+  var timer = setTimeout(function(){ ctrl.abort(); }, 120000);
 
-  fetch('/.netlify/functions/evaluate-background', {
+  fetch(SUPABASE_URL + '/functions/v1/evaluate', {
     method:'POST',
-    headers:{'Content-Type':'application/json'},
+    signal: ctrl.signal,
+    headers:{
+      'Content-Type':'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization':'Bearer ' + SUPABASE_ANON_KEY
+    },
     body: JSON.stringify({
-      jobId: jobId,
       data: fileData, mediaType: fileMedia, fileName: fileNameStr,
       pieceType: document.getElementById('ptype').value,
       isTemplate: document.getElementById('istpl').checked,
       context: document.getElementById('ctx').value.trim()
     })
   }).then(function(r){
-      if (r.status === 404) throw new Error('Background function not found \u2014 confirm netlify/functions/evaluate-background.mjs and package.json are in the repo, then redeploy.');
-      if (!r.ok && r.status !== 202) throw new Error('Submit failed (status ' + r.status + ').');
-      pollResult(jobId, 0);
+      return r.text().then(function(t){
+        var j; try { j = JSON.parse(t); }
+        catch(e){ throw new Error('Server returned status ' + r.status + ' (non-JSON): ' + t.slice(0,180)); }
+        if (!r.ok || j.error){
+          throw new Error(r.status === 404
+            ? 'Edge function not found — deploy a function named exactly "evaluate" in Supabase (Edge Functions).'
+            : (j.error || ('Evaluation failed (status ' + r.status + ').')));
+        }
+        return j;
+      });
     })
-    .catch(function(e){ stopSpin(); showErr(e.message); });
+    .then(function(result){
+      clearTimeout(timer); stopSpin();
+      render(result);
+      loadHistory();
+    })
+    .catch(function(e){
+      clearTimeout(timer); stopSpin();
+      showErr(e.name === 'AbortError' ? 'Timed out after 2 minutes — try again, or check the Supabase function logs.' : e.message);
+    });
 });
 
 function stopSpin(){ document.getElementById('spin').style.display = 'none'; goBtn.disabled = false; }
-
-function pollResult(jobId, tries){
-  if (tries > 72){ stopSpin(); showErr('Timed out waiting for the evaluation (3 min). Check the Netlify function logs for evaluate-background.'); return; }
-  setTimeout(function(){
-    fetch('/.netlify/functions/result?id=' + encodeURIComponent(jobId))
-      .then(function(r){ return r.json(); })
-      .then(function(j){
-        if (j.status === 'pending'){ pollResult(jobId, tries + 1); return; }
-        stopSpin();
-        if (j.status === 'error'){ showErr(j.error || 'Evaluation failed.'); return; }
-        render(j.result);
-        saveHistory(j.result);
-      })
-      .catch(function(){ pollResult(jobId, tries + 1); });
-  }, 2500);
-}
 
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
@@ -290,23 +291,11 @@ function render(d){
   document.getElementById('results').scrollIntoView({behavior:'smooth'});
 }
 
-/* ---------- Supabase history (optional) ---------- */
+/* ---------- Supabase (results + history) ---------- */
 function sbReady(){ return SUPABASE_URL && SUPABASE_ANON_KEY; }
-function saveHistory(d){
-  if (!sbReady()) return;
-  fetch(SUPABASE_URL + '/rest/v1/evaluations', {
-    method:'POST',
-    headers:{ 'apikey':SUPABASE_ANON_KEY, 'Authorization':'Bearer '+SUPABASE_ANON_KEY, 'Content-Type':'application/json', 'Prefer':'return=minimal' },
-    body: JSON.stringify({
-      piece_name: fileNameStr, piece_type: document.getElementById('ptype').value,
-      brand_score: d.brand_score, effectiveness_score: d.effectiveness_score,
-      composite: d.composite, verdict: d.verdict, fixes: d.fixes || [], checklist: d.checklist || {}
-    })
-  }).then(loadHistory).catch(function(){});
-}
 function loadHistory(){
   if (!sbReady()) return;
-  fetch(SUPABASE_URL + '/rest/v1/evaluations?select=created_at,piece_name,piece_type,composite,verdict&order=created_at.desc&limit=10', {
+  fetch(SUPABASE_URL + '/rest/v1/evaluations?select=created_at,piece_name,piece_type,composite&status=eq.done&order=created_at.desc&limit=10', {
     headers:{ 'apikey':SUPABASE_ANON_KEY, 'Authorization':'Bearer '+SUPABASE_ANON_KEY }
   }).then(function(r){ return r.json(); }).then(function(rows){
     if (!rows || !rows.length) return;
