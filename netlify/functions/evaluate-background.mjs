@@ -1,8 +1,7 @@
 // netlify/functions/evaluate-background.mjs
-// Background function (name suffix "-background" gives it up to 15 minutes).
-// Accepts the job, returns immediately, runs the Claude evaluation, and writes
-// the result to Netlify Blobs under the client-supplied jobId.
-import { getStore } from "@netlify/blobs";
+// Background function ("-background" suffix = up to 15 min, no 10s timeout).
+// Runs the Claude evaluation and writes the finished row to Supabase.
+// Required Netlify env vars: ANTHROPIC_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY
 
 const RUBRIC = `You are the #TEACH Brand & Effectiveness Evaluator. You score marketing pieces for
 #TEACH (Training Educators and Creating Hope), a CAEP-accredited alternative teacher
@@ -108,65 +107,109 @@ Respond ONLY with valid JSON (no markdown fences, no preamble) in exactly this s
 }
 Be specific and honest. Name exact hexes, exact copy edits, exact placements. Do not inflate scores.`;
 
+async function writeRow(row) {
+  const url = process.env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/evaluations";
+  const r = await fetch(url, {
+    method: "POST",
+    headers: {
+      "apikey": process.env.SUPABASE_SERVICE_KEY,
+      "Authorization": "Bearer " + process.env.SUPABASE_SERVICE_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "return=minimal"
+    },
+    body: JSON.stringify(row)
+  });
+  if (!r.ok) throw new Error("Supabase write failed (" + r.status + "): " + (await r.text()).slice(0, 200));
+}
+
 export default async (req) => {
-  let payload;
-  try { payload = await req.json(); } catch (e) { return new Response("bad json", { status: 400 }); }
-  const { jobId, data, mediaType, pieceType, isTemplate, context, fileName } = payload || {};
-  if (!jobId || !data || !mediaType) return new Response("missing fields", { status: 400 });
-
-  const store = getStore("evals");
-
-  const fail = async (msg) => {
-    await store.setJSON(jobId, { __error: msg });
-  };
-
-  if (!process.env.ANTHROPIC_API_KEY) { await fail("ANTHROPIC_API_KEY not configured in Netlify environment variables"); return new Response("accepted", { status: 202 }); }
-
-  const fileBlock = mediaType === "application/pdf"
-    ? { type: "document", source: { type: "base64", media_type: "application/pdf", data } }
-    : { type: "image", source: { type: "base64", media_type: mediaType, data } };
-
-  const userText =
-    "Evaluate this piece.\n" +
-    "piece_type: " + (pieceType || "other") + "\n" +
-    "is_template: " + (isTemplate ? "true" : "false") + "\n" +
-    (fileName ? "file_name: " + fileName + "\n" : "") +
-    (context ? "additional context from the user: " + context + "\n" : "") +
-    "Return ONLY the JSON object.";
+  // Health check: open this function's URL in a browser (GET) and it reports
+  // exactly which environment variables are set, and confirms this version is live.
+  if (req.method === "GET") {
+    const envs = {
+      ANTHROPIC_API_KEY: !!process.env.ANTHROPIC_API_KEY,
+      SUPABASE_URL: !!process.env.SUPABASE_URL,
+      SUPABASE_SERVICE_KEY: !!process.env.SUPABASE_SERVICE_KEY
+    };
+    const missing = Object.keys(envs).filter(k => !envs[k]);
+    return new Response(JSON.stringify({
+      version: "v3-supabase",
+      status: missing.length ? "NOT READY" : "READY",
+      env_vars_set: envs,
+      missing: missing,
+      note: missing.length
+        ? "Add the missing variables in Netlify (Site configuration -> Environment variables), then Deploys -> Trigger deploy."
+        : "All env vars present. If evaluations still fail, check Logs -> Functions -> evaluate-background."
+    }, null, 2), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
 
   try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 2500,
-        temperature: 0.2,
-        system: RUBRIC,
-        messages: [{ role: "user", content: [fileBlock, { type: "text", text: userText }] }]
-      })
-    });
-    const out = await resp.json();
-    if (!resp.ok) { await fail((out && out.error && out.error.message) || "Anthropic API error (status " + resp.status + ")"); return new Response("accepted", { status: 202 }); }
+    const payload = await req.json();
+    const { jobId, data, mediaType, pieceType, isTemplate, context, fileName } = payload || {};
+    if (!jobId || !data || !mediaType) return new Response("missing fields", { status: 400 });
 
-    let text = "";
-    (out.content || []).forEach(c => { if (c.type === "text") text += c.text; });
-    text = text.replace(/```json|```/g, "").trim();
+    const missing = ["ANTHROPIC_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_KEY"].filter(k => !process.env[k]);
+    if (missing.length) {
+      // Can't even record the error without Supabase; surface it on submit.
+      return new Response("Missing Netlify env vars: " + missing.join(", "), { status: 500 });
+    }
+
+    const fail = (msg) => writeRow({ job_id: jobId, status: "error", error: msg, piece_name: fileName || null, piece_type: pieceType || null });
+
+    const fileBlock = mediaType === "application/pdf"
+      ? { type: "document", source: { type: "base64", media_type: "application/pdf", data } }
+      : { type: "image", source: { type: "base64", media_type: mediaType, data } };
+
+    const userText =
+      "Evaluate this piece.\n" +
+      "piece_type: " + (pieceType || "other") + "\n" +
+      "is_template: " + (isTemplate ? "true" : "false") + "\n" +
+      (fileName ? "file_name: " + fileName + "\n" : "") +
+      (context ? "additional context from the user: " + context + "\n" : "") +
+      "Return ONLY the JSON object.";
 
     let parsed;
-    try { parsed = JSON.parse(text); }
-    catch (e) {
-      const m = text.match(/\{[\s\S]*\}/);
-      if (m) parsed = JSON.parse(m[0]);
-      else { await fail("Model returned non-JSON output"); return new Response("accepted", { status: 202 }); }
+    try {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 2500,
+          temperature: 0.2,
+          system: RUBRIC,
+          messages: [{ role: "user", content: [fileBlock, { type: "text", text: userText }] }]
+        })
+      });
+      const out = await resp.json();
+      if (!resp.ok) { await fail((out && out.error && out.error.message) || "Anthropic API error (status " + resp.status + ")"); return new Response("accepted", { status: 202 }); }
+
+      let text = "";
+      (out.content || []).forEach(c => { if (c.type === "text") text += c.text; });
+      text = text.replace(/```json|```/g, "").trim();
+      try { parsed = JSON.parse(text); }
+      catch (e) {
+        const m = text.match(/\{[\s\S]*\}/);
+        if (m) parsed = JSON.parse(m[0]);
+        else { await fail("Model returned non-JSON output"); return new Response("accepted", { status: 202 }); }
+      }
+    } catch (err) {
+      await fail(String((err && err.message) || err));
+      return new Response("accepted", { status: 202 });
     }
-    await store.setJSON(jobId, parsed);
-  } catch (err) {
-    await fail(String((err && err.message) || err));
+
+    await writeRow({
+      job_id: jobId, status: "done",
+      piece_name: fileName || null, piece_type: pieceType || null,
+      brand_score: parsed.brand_score, effectiveness_score: parsed.effectiveness_score,
+      composite: parsed.composite, verdict: parsed.verdict, result: parsed
+    });
+    return new Response("accepted", { status: 202 });
+  } catch (outer) {
+    return new Response("Function error: " + String((outer && outer.message) || outer), { status: 500 });
   }
-  return new Response("accepted", { status: 202 });
 };
