@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#TEACH Brand Evaluator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#002E5D;--red:#8B0000;--blue:#12A7E6;--off:#F5F5F5;--silver:#C5C5C5;--ink:#1a2430}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,Arial,sans-serif;background:var(--off);color:var(--ink);min-height:100vh}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px 60px}
+header{background:var(--navy);padding:18px 0;margin-bottom:26px}
+header .wrap{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:0}
+.logo{font-weight:800;font-size:24px;color:#fff;letter-spacing:-.02em}
+.logo .hash{color:var(--red)}
+.apptag{font-weight:600;font-size:11px;letter-spacing:.18em;color:var(--blue);text-transform:uppercase}
+h1{font-weight:800;font-size:26px;color:var(--navy);letter-spacing:-.01em;margin-bottom:6px}
+.lede{font-weight:300;font-size:14px;color:#44505e;line-height:1.55;margin-bottom:20px}
+.card{background:#fff;border:1px solid var(--silver);border-radius:12px;padding:20px;margin-bottom:18px}
+label{display:block;font-weight:700;font-size:11px;letter-spacing:.12em;color:var(--navy);text-transform:uppercase;margin:14px 0 6px}
+select,textarea,input[type=text]{width:100%;font-family:Inter;font-size:14px;padding:10px 12px;border:1px solid var(--silver);border-radius:8px;background:#fff;color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.drop{border:2px dashed var(--silver);border-radius:12px;padding:34px 16px;text-align:center;cursor:pointer;transition:.15s;background:#fbfbfc}
+.drop.on{border-color:var(--blue);background:#eef8fe}
+.drop b{color:var(--navy)}
+.drop small{display:block;margin-top:6px;color:#7a8694;font-weight:300}
+.preview{display:flex;gap:14px;align-items:center;margin-top:12px}
+.preview img{max-height:120px;border:1px solid var(--silver);border-radius:8px}
+.preview .meta{font-size:12.5px;color:#44505e}
+.preview .meta b{color:var(--navy)}
+.chk{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:#44505e}
+.chk input{width:16px;height:16px;accent-color:var(--navy)}
+button.go{margin-top:18px;width:100%;background:var(--red);color:#fff;font-family:Inter;font-weight:800;font-size:15px;letter-spacing:.06em;border:none;border-radius:10px;padding:14px;cursor:pointer}
+button.go:hover{background:#a31112}
+button.go:disabled{background:var(--silver);cursor:default}
+.spin{display:none;text-align:center;padding:26px 0;color:var(--navy);font-weight:600}
+.spin .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--blue);margin:0 3px;animation:b 1s infinite alternate}
+.spin .dot:nth-child(2){animation-delay:.2s;background:var(--red)}
+.spin .dot:nth-child(3){animation-delay:.4s;background:var(--navy)}
+@keyframes b{to{transform:translateY(-7px)}}
+/* results */
+#results{display:none}
+.scoregrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0 6px}
+.schip{border:1px solid var(--silver);border-radius:10px;padding:12px;text-align:center}
+.schip .n{font-weight:800;font-size:30px}
+.schip .l{font-weight:700;font-size:9.5px;letter-spacing:.12em;color:#7a8694;text-transform:uppercase;margin-top:2px}
+.n.navy{color:var(--navy)} .n.red{color:var(--red)} .n.blue{color:var(--blue)}
+.verdict{border-left:5px solid var(--red);background:var(--off);padding:12px 14px;font-size:13.5px;line-height:1.55;margin:12px 0}
+.seclab{font-weight:800;font-size:12px;letter-spacing:.14em;color:var(--navy);text-transform:uppercase;margin:18px 0 8px}
+.seclab.red{color:var(--red)}
+ul.pts{list-style:none}
+ul.pts li{position:relative;padding:4px 0 4px 22px;font-size:13.5px;line-height:1.5}
+ul.pts li.pro:before{content:"\2713";position:absolute;left:0;color:var(--blue);font-weight:800}
+ul.pts li.con:before{content:"\2715";position:absolute;left:0;color:var(--red);font-weight:800;font-size:11px;top:7px}
+.chkgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chkitem{border:1px solid var(--silver);border-radius:8px;padding:9px 11px;font-size:12px;line-height:1.4}
+.chkitem b{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.st-pass{border-left:4px solid var(--blue)} .st-pass b{color:var(--blue)}
+.st-warn{border-left:4px solid #c9a227} .st-warn b{color:#a3841f}
+.st-fail{border-left:4px solid var(--red)} .st-fail b{color:var(--red)}
+.fix{border:1px solid var(--silver);border-left:5px solid var(--navy);border-radius:8px;padding:11px 13px;margin-bottom:9px}
+.fix .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.fix .chg{font-weight:700;font-size:13.5px;color:var(--navy)}
+.fix .imp{font-weight:800;font-size:13px;color:var(--blue);white-space:nowrap}
+.fix .why{font-size:12px;color:#5a6675;margin-top:3px;line-height:1.45}
+.projected{background:var(--navy);color:#fff;border-radius:10px;padding:14px 16px;margin-top:14px;display:flex;justify-content:space-between;align-items:center}
+.projected .n{font-weight:800;font-size:26px;color:var(--blue)}
+.ceiling{margin-top:10px;font-size:12.5px;color:#7a4a1e;background:#fdf3e4;border:1px solid #ecd9b0;border-radius:8px;padding:10px 12px;line-height:1.5}
+.histrow{display:flex;justify-content:space-between;gap:10px;padding:9px 4px;border-bottom:1px solid #e7eaee;font-size:12.5px}
+.histrow .c{font-weight:800;color:var(--blue)}
+.err{display:none;background:#fbeaea;border:1px solid #e3b6b6;color:#7a1e1e;border-radius:8px;padding:11px 13px;font-size:13px;margin-top:12px}
+footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spacing:.06em}
+@media (max-width:640px){.scoregrid{grid-template-columns:1fr}.chkgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="logo"><span class="hash">#</span>TEACH</div><div class="apptag">Brand Evaluator</div></div></header>
+<div class="wrap">
+  <h1>Evaluate a Marketing Piece</h1>
+  <div class="lede">Upload any flyer, banner, card, document, or slide. It's scored against the #TEACH brand standards and format-specific effectiveness criteria from the Marketing Collateral Review — with a prioritized fix list to reach 9&ndash;10.</div>
+
+  <div class="card">
+    <div class="drop" id="drop">
+      <b>Drop a file here or tap to choose</b>
+      <small>PNG, JPG, WebP, or PDF &middot; images auto-resized &middot; PDFs up to 4&nbsp;MB</small>
+      <input type="file" id="file" accept="image/png,image/jpeg,image/webp,application/pdf" style="display:none">
+    </div>
+    <div class="preview" id="preview" style="display:none"></div>
+
+    <label for="ptype">Piece type</label>
+    <select id="ptype">
+      <option value="candidate_flyer">Flyer — candidate recruitment</option>
+      <option value="district_b2b">Flyer / one-pager — district (B2B)</option>
+      <option value="banner">Retractable banner</option>
+      <option value="business_card">Business card</option>
+      <option value="promo_item">Promo item (pen, giveaway)</option>
+      <option value="backdrop">Step &amp; repeat backdrop</option>
+      <option value="tablecloth">Tablecloth</option>
+      <option value="folder">Presentation folder</option>
+      <option value="program_document">Program document / course list</option>
+      <option value="presentation">Presentation slide(s)</option>
+      <option value="social_graphic">Social media graphic</option>
+      <option value="other">Other</option>
+    </select>
+
+    <div class="chk"><input type="checkbox" id="istpl"><span>This is a <b>template</b> — placeholder contact fields are expected and should not be penalized</span></div>
+
+    <label for="ctx">Context for the evaluator (optional)</label>
+    <textarea id="ctx" placeholder="e.g., For a Detroit career fair table; audience is paraprofessionals; will be printed 11x17"></textarea>
+
+    <button class="go" id="go" disabled>Evaluate Against Brand Standards</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="spin" id="spin">Scoring against the brand board <span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+
+  <div class="card" id="results">
+    <div id="summary" class="lede" style="margin-bottom:4px"></div>
+    <div class="scoregrid">
+      <div class="schip"><div class="n navy" id="sBrand">–</div><div class="l">Brand Compliance</div></div>
+      <div class="schip"><div class="n red" id="sEff">–</div><div class="l" id="sEffLabel">Effectiveness</div></div>
+      <div class="schip"><div class="n blue" id="sComp">–</div><div class="l">Composite</div></div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+
+    <div class="seclab">Checklist vs. the Brand Board</div>
+    <div class="chkgrid" id="chklist"></div>
+
+    <div class="seclab">Strengths</div>
+    <ul class="pts" id="pros"></ul>
+    <div class="seclab red">Gaps</div>
+    <ul class="pts" id="cons"></ul>
+
+    <div class="seclab">Path to 9&ndash;10 — prioritized fixes</div>
+    <div id="fixes"></div>
+    <div class="projected"><span style="font-weight:700;font-size:13px;letter-spacing:.08em">PROJECTED SCORE AFTER FIXES</span><span class="n" id="sProj">–</span></div>
+    <div class="ceiling" id="ceiling" style="display:none"></div>
+  </div>
+
+  <div class="card" id="histcard" style="display:none">
+    <div class="seclab" style="margin-top:0">Recent Evaluations</div>
+    <div id="hist"></div>
+  </div>
+
+  <footer>#TEACH &middot; Training Educators and Creating Hope &middot; Internal brand tool</footer>
+</div>
+
+<script>
+/* ================= CONFIG =================
+   Supabase is OPTIONAL (evaluation history). Leave blank to run without it.
+   See README-DEPLOY for the one-table SQL setup. */
+var SUPABASE_URL = "";      // e.g. "https://xxxx.supabase.co"
+var SUPABASE_ANON_KEY = ""; // anon public key
+/* ========================================== */
+
+var fileData = null, fileMedia = null, fileNameStr = "";
+var drop = document.getElementById('drop');
+var fileInput = document.getElementById('file');
+var goBtn = document.getElementById('go');
+var errBox = document.getElementById('err');
+
+drop.addEventListener('click', function(){ fileInput.click(); });
+drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('on'); });
+drop.addEventListener('dragleave', function(){ drop.classList.remove('on'); });
+drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('on'); if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', function(){ if(fileInput.files.length) handleFile(fileInput.files[0]); });
+
+function showErr(m){ errBox.textContent = m; errBox.style.display = 'block'; }
+function clearErr(){ errBox.style.display = 'none'; }
+
+function handleFile(f){
+  clearErr(); fileNameStr = f.name;
+  if (f.type === 'application/pdf'){
+    if (f.size > 4*1024*1024){ showErr('PDF is over 4 MB — export a smaller version or a single page.'); return; }
+    var r = new FileReader();
+    r.onload = function(){ fileData = r.result.split(',')[1]; fileMedia = 'application/pdf'; showPreview(null, f); };
+    r.readAsDataURL(f);
+  } else if (/^image\/(png|jpe?g|webp)$/.test(f.type)){
+    var img = new Image();
+    var r2 = new FileReader();
+    r2.onload = function(){ img.src = r2.result; };
+    img.onload = function(){
+      var MAX = 1568;
+      var sc = Math.min(1, MAX / Math.max(img.width, img.height));
+      var cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * sc); cv.height = Math.round(img.height * sc);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      var url = cv.toDataURL('image/jpeg', 0.87);
+      fileData = url.split(',')[1]; fileMedia = 'image/jpeg';
+      showPreview(url, f);
+    };
+    r2.readAsDataURL(f);
+  } else {
+    showErr('Unsupported file type — use PNG, JPG, WebP, or PDF.');
+    return;
+  }
+}
+
+function showPreview(url, f){
+  var p = document.getElementById('preview');
+  p.style.display = 'flex';
+  p.innerHTML = (url ? '<img src="'+url+'" alt="">' : '<div style="font-size:34px">&#128196;</div>') +
+    '<div class="meta"><b>'+ f.name.replace(/</g,'&lt;') +'</b><br>'+ Math.round(f.size/1024) +' KB &middot; ready to evaluate</div>';
+  goBtn.disabled = false;
+}
+
+goBtn.addEventListener('click', function(){
+  if (!fileData) return;
+  clearErr();
+  goBtn.disabled = true;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('spin').style.display = 'block';
+  fetch('/.netlify/functions/evaluate', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      data: fileData, mediaType: fileMedia, fileName: fileNameStr,
+      pieceType: document.getElementById('ptype').value,
+      isTemplate: document.getElementById('istpl').checked,
+      context: document.getElementById('ctx').value.trim()
+    })
+  }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+    .then(function(res){
+      document.getElementById('spin').style.display = 'none';
+      goBtn.disabled = false;
+      if (!res.ok || res.j.error){ showErr(res.j.error || 'Evaluation failed — try again.'); return; }
+      render(res.j);
+      saveHistory(res.j);
+    })
+    .catch(function(e){
+      document.getElementById('spin').style.display = 'none';
+      goBtn.disabled = false;
+      showErr('Network error: ' + e.message);
+    });
+});
+
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function render(d){
+  document.getElementById('summary').textContent = d.piece_summary || '';
+  document.getElementById('sBrand').textContent = Number(d.brand_score).toFixed(1);
+  document.getElementById('sEff').textContent = Number(d.effectiveness_score).toFixed(1);
+  document.getElementById('sEffLabel').textContent = d.effectiveness_label || 'Effectiveness';
+  document.getElementById('sComp').textContent = Number(d.composite).toFixed(2);
+  document.getElementById('verdict').innerHTML = '<b>Verdict:</b> ' + esc(d.verdict);
+
+  var order = ['palette','logo','typography','photography','contrast','voice','cta_response_path'];
+  var names = {palette:'Palette', logo:'Logo', typography:'Typography', photography:'Photography', contrast:'Contrast', voice:'Voice', cta_response_path:'CTA / Response Path'};
+  var ch = '';
+  order.forEach(function(k){
+    var c = (d.checklist || {})[k]; if (!c) return;
+    var st = (c.status || 'warn').replace('n/a','warn');
+    ch += '<div class="chkitem st-'+esc(st)+'"><b>'+names[k]+' &middot; '+esc((c.status||'').toUpperCase())+'</b>'+esc(c.note)+'</div>';
+  });
+  document.getElementById('chklist').innerHTML = ch;
+
+  document.getElementById('pros').innerHTML = (d.strengths||[]).map(function(s){return '<li class="pro">'+esc(s)+'</li>';}).join('');
+  document.getElementById('cons').innerHTML = (d.gaps||[]).map(function(s){return '<li class="con">'+esc(s)+'</li>';}).join('');
+
+  document.getElementById('fixes').innerHTML = (d.fixes||[]).map(function(f){
+    return '<div class="fix"><div class="top"><span class="chg">'+esc(f.priority)+'. '+esc(f.change)+'</span><span class="imp">'+esc(f.impact||'')+'</span></div><div class="why">'+esc(f.why||'')+'</div></div>';
+  }).join('');
+
+  document.getElementById('sProj').textContent = d.projected_score_after_fixes != null ? Number(d.projected_score_after_fixes).toFixed(1) : '–';
+  var cnote = document.getElementById('ceiling');
+  if (d.ceiling_note && d.ceiling_note.trim()){ cnote.textContent = 'Ceiling note: ' + d.ceiling_note; cnote.style.display = 'block'; }
+  else cnote.style.display = 'none';
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+
+/* ---------- Supabase history (optional) ---------- */
+function sbReady(){ return SUPABASE_URL && SUPABASE_ANON_KEY; }
+function saveHistory(d){
+  if (!sbReady()) return;
+  fetch(SUPABASE_URL + '/rest/v1/evaluations', {
+    method:'POST',
+    headers:{ 'apikey':SUPABASE_ANON_KEY, 'Authorization':'Bearer '+SUPABASE_ANON_KEY, 'Content-Type':'application/json', 'Prefer':'return=minimal' },
+    body: JSON.stringify({
+      piece_name: fileNameStr, piece_type: document.getElementById('ptype').value,
+      brand_score: d.brand_score, effectiveness_score: d.effectiveness_score,
+      composite: d.composite, verdict: d.verdict, fixes: d.fixes || [], checklist: d.checklist || {}
+    })
+  }).then(loadHistory).catch(function(){});
+}
+function loadHistory(){
+  if (!sbReady()) return;
+  fetch(SUPABASE_URL + '/rest/v1/evaluations?select=created_at,piece_name,piece_type,composite,verdict&order=created_at.desc&limit=10', {
+    headers:{ 'apikey':SUPABASE_ANON_KEY, 'Authorization':'Bearer '+SUPABASE_ANON_KEY }
+  }).then(function(r){ return r.json(); }).then(function(rows){
+    if (!rows || !rows.length) return;
+    document.getElementById('histcard').style.display = 'block';
+    document.getElementById('hist').innerHTML = rows.map(function(r){
+      var dt = (r.created_at||'').slice(0,10);
+      return '<div class="histrow"><span>'+esc(dt)+' &middot; <b>'+esc(r.piece_name||r.piece_type)+'</b></span><span class="c">'+Number(r.composite).toFixed(2)+'</span></div>';
+    }).join('');
+  }).catch(function(){});
+}
+loadHistory();
+</script>
+</body>
+</html>
