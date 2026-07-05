@@ -110,7 +110,9 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
     <textarea id="ctx" placeholder="e.g., For a Detroit career fair table; audience is paraprofessionals; will be printed 11x17"></textarea>
 
     <button class="go" id="go" disabled>Evaluate Against Brand Standards</button>
+    <button class="go" id="test" style="background:var(--navy);margin-top:10px;font-size:12.5px;padding:10px">Test Connection</button>
     <div class="err" id="err"></div>
+    <div class="err" id="testout" style="background:#eef8fe;border-color:#a9d9f2;color:#0e3a5c"></div>
   </div>
 
   <div class="spin" id="spin">Scoring against the brand board &mdash; typically 20&ndash;40 seconds <span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
@@ -254,6 +256,33 @@ goBtn.addEventListener('click', function(){
 });
 
 function stopSpin(){ document.getElementById('spin').style.display = 'none'; goBtn.disabled = false; }
+
+document.getElementById('test').addEventListener('click', function(){
+  var out = document.getElementById('testout');
+  clearErr();
+  if (!sbReady()){ showErr('Supabase is not configured — set SUPABASE_URL and SUPABASE_ANON_KEY at the top of index.html.'); return; }
+  out.style.display = 'block';
+  out.textContent = 'Testing connection…';
+  fetch(SUPABASE_URL + '/functions/v1/evaluate', {
+    method:'GET',
+    headers:{ 'apikey': SUPABASE_ANON_KEY, 'Authorization':'Bearer ' + SUPABASE_ANON_KEY }
+  }).then(function(r){ return r.text().then(function(t){ return {s:r.status, t:t}; }); })
+    .then(function(res){
+      var j; try { j = JSON.parse(res.t); } catch(e){ j = null; }
+      if (j && j.version){
+        out.textContent = 'Function: ' + j.version +
+          '  |  Anthropic key set: ' + (j.anthropic_key_set ? 'YES' : 'NO — add ANTHROPIC_API_KEY in Edge Functions → Secrets') +
+          '  |  Anthropic ping: ' + j.anthropic_ping;
+      } else if (res.s === 401) {
+        out.textContent = 'Auth rejected (401) — the SUPABASE_ANON_KEY in index.html is wrong for this project.';
+      } else if (res.s === 404) {
+        out.textContent = 'Function not found (404) — the deployed function is not named exactly "evaluate", or the old code (without self-test) is still deployed. Re-paste the v4.1 code.';
+      } else {
+        out.textContent = 'Unexpected response (' + res.s + '): ' + res.t.slice(0,180);
+      }
+    })
+    .catch(function(e){ out.textContent = 'Failed to reach the function at all: ' + e.message + ' — check SUPABASE_URL.'; });
+});
 
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
