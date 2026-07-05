@@ -9,15 +9,24 @@ fix list to reach 9–10, with a projected score.
 ```
 /index.html
 /netlify.toml
-/netlify/functions/evaluate.js
+/package.json
+/netlify/functions/evaluate-background.mjs
+/netlify/functions/result.mjs
 ```
+
+The evaluation runs as a Netlify BACKGROUND function (the "-background" filename suffix
+matters — it lifts the 10-second timeout that kills synchronous AI calls). The page submits
+the job, then polls /result every 2.5s until the score is ready (typically 20-40 seconds).
+Results pass through Netlify Blobs; no extra configuration needed.
 
 ## Step 1 — GitHub
 1. Create a new repository (e.g. `teach-brand-evaluator`).
 2. "Add file → Upload files" and upload `index.html` and `netlify.toml` to the root.
-3. Create the function file via "Add file → Create new file", name it
-   `netlify/functions/evaluate.js` (typing the slashes creates the folders), and paste
-   the contents of evaluate.js.
+3. Upload `package.json` to the root as well.
+4. Create the two function files via "Add file → Create new file" (typing the slashes in
+   the filename creates the folders):
+   - `netlify/functions/evaluate-background.mjs`
+   - `netlify/functions/result.mjs`
 
 ## Step 2 — Netlify
 1. "Add new site → Import an existing project" → pick the repo. Build settings: none needed

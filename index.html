@@ -211,41 +211,48 @@ goBtn.addEventListener('click', function(){
   clearErr();
   goBtn.disabled = true;
   document.getElementById('results').style.display = 'none';
-  document.getElementById('spin').style.display = 'block';
-  fetch('/.netlify/functions/evaluate', {
+  var spin = document.getElementById('spin');
+  spin.style.display = 'block';
+  spin.childNodes[0].nodeValue = 'Scoring against the brand board \u2014 typically 20\u201340 seconds ';
+
+  var jobId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+            : 'job-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+
+  fetch('/.netlify/functions/evaluate-background', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
+      jobId: jobId,
       data: fileData, mediaType: fileMedia, fileName: fileNameStr,
       pieceType: document.getElementById('ptype').value,
       isTemplate: document.getElementById('istpl').checked,
       context: document.getElementById('ctx').value.trim()
     })
   }).then(function(r){
-      return r.text().then(function(t){
-        var j;
-        try { j = JSON.parse(t); }
-        catch(e){
-          throw new Error(r.status === 404
-            ? 'Function not found — check that evaluate.js is at netlify/functions/evaluate.js and the site is Git-connected.'
-            : 'Server returned status ' + r.status + ' (non-JSON). Likely the upload was too large — try a smaller file or a PNG — or check the Netlify function logs.');
-        }
-        return {ok:r.ok, j:j};
-      });
+      if (r.status === 404) throw new Error('Background function not found \u2014 confirm netlify/functions/evaluate-background.mjs and package.json are in the repo, then redeploy.');
+      if (!r.ok && r.status !== 202) throw new Error('Submit failed (status ' + r.status + ').');
+      pollResult(jobId, 0);
     })
-    .then(function(res){
-      document.getElementById('spin').style.display = 'none';
-      goBtn.disabled = false;
-      if (!res.ok || res.j.error){ showErr(res.j.error || 'Evaluation failed — try again.'); return; }
-      render(res.j);
-      saveHistory(res.j);
-    })
-    .catch(function(e){
-      document.getElementById('spin').style.display = 'none';
-      goBtn.disabled = false;
-      showErr('Network error: ' + e.message);
-    });
+    .catch(function(e){ stopSpin(); showErr(e.message); });
 });
+
+function stopSpin(){ document.getElementById('spin').style.display = 'none'; goBtn.disabled = false; }
+
+function pollResult(jobId, tries){
+  if (tries > 72){ stopSpin(); showErr('Timed out waiting for the evaluation (3 min). Check the Netlify function logs for evaluate-background.'); return; }
+  setTimeout(function(){
+    fetch('/.netlify/functions/result?id=' + encodeURIComponent(jobId))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j.status === 'pending'){ pollResult(jobId, tries + 1); return; }
+        stopSpin();
+        if (j.status === 'error'){ showErr(j.error || 'Evaluation failed.'); return; }
+        render(j.result);
+        saveHistory(j.result);
+      })
+      .catch(function(){ pollResult(jobId, tries + 1); });
+  }, 2500);
+}
 
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 
