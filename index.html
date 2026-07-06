@@ -71,11 +71,33 @@ ul.pts li.con:before{content:"\2715";position:absolute;left:0;color:var(--red);f
 .histrow .c{font-weight:800;color:var(--blue)}
 .err{display:none;background:#fbeaea;border:1px solid #e3b6b6;color:#7a1e1e;border-radius:8px;padding:11px 13px;font-size:13px;margin-top:12px}
 footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spacing:.06em}
+.helpbtn{font-family:Inter;font-weight:700;font-size:11px;letter-spacing:.1em;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.45);border-radius:7px;padding:6px 12px;cursor:pointer;text-transform:uppercase}
+.helpbtn:hover{border-color:var(--blue);color:var(--blue)}
+.modal{display:none;position:fixed;inset:0;background:rgba(10,20,35,.55);z-index:50;padding:20px;overflow-y:auto}
+.modal.open{display:block}
+.mbox{max-width:720px;margin:30px auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.mhead{background:var(--navy);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.mhead b{font-weight:800;font-size:17px}
+.mhead b .hash{color:#e05252}
+.mclose{background:none;border:none;color:#fff;font-size:26px;line-height:1;cursor:pointer;padding:0 4px}
+.mbody{padding:20px 22px 26px;font-size:13.5px;line-height:1.6;color:#2a3542}
+.mbody h3{font-weight:800;font-size:12px;letter-spacing:.14em;color:var(--navy);text-transform:uppercase;margin:20px 0 8px}
+.mbody h3:first-child{margin-top:0}
+.mbody h3.red{color:var(--red)}
+.mbody ol,.mbody ul{margin:0 0 6px 20px;padding:0}
+.mbody li{margin-bottom:6px}
+.mbody .note{font-size:12px;color:#5a6675;background:var(--off);border-radius:8px;padding:9px 12px;margin-top:8px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.sw{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#44505e}
+.sw i{display:inline-block;width:18px;height:18px;border-radius:5px;border:1px solid #d5d9de}
+.crit{border:1px solid var(--silver);border-radius:8px;padding:10px 13px;margin-bottom:8px}
+.crit b{color:var(--navy);font-size:12.5px}
+.crit span{display:block;font-size:12px;color:#5a6675;margin-top:2px;line-height:1.5}
 @media (max-width:640px){.scoregrid{grid-template-columns:1fr}.chkgrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header><div class="wrap"><div class="logo"><span class="hash">#</span>TEACH</div><div class="apptag">Brand Evaluator</div></div></header>
+<header><div class="wrap"><div class="logo"><span class="hash">#</span>TEACH</div><div style="display:flex;align-items:center;gap:14px"><div class="apptag">Brand Evaluator</div><button class="helpbtn" id="helpopen">How It Works</button></div></div></header>
 <div class="wrap">
   <h1>Evaluate a Marketing Piece</h1>
   <div class="lede">Upload any flyer, banner, card, document, or slide. It's scored against the #TEACH brand standards and format-specific effectiveness criteria from the Marketing Collateral Review &mdash; with a prioritized fix list to reach 9&ndash;10.</div>
@@ -150,6 +172,52 @@ footer{margin-top:28px;text-align:center;font-size:11px;color:#8a94a1;letter-spa
 
   <footer>#TEACH &middot; Training Educators and Creating Hope &middot; Internal brand tool</footer>
 </div>
+
+<div class="modal" id="helpmodal">
+  <div class="mbox">
+    <div class="mhead"><b><span class="hash">#</span>TEACH Brand Evaluator &mdash; How It Works</b><button class="mclose" id="helpclose" aria-label="Close">&times;</button></div>
+    <div class="mbody">
+      <h3>Using the App</h3>
+      <ol>
+        <li><b>Upload</b> a marketing piece &mdash; PNG, JPG, WebP, or PDF (up to 2.5&nbsp;MB). Images are resized automatically. For big PDFs, a screenshot of the page works perfectly.</li>
+        <li><b>Choose the piece type.</b> This decides which effectiveness criteria apply &mdash; a flyer is judged on recruiting power, a banner on stopping foot traffic, a course list on accuracy.</li>
+        <li><b>Check &ldquo;template&rdquo;</b> if the file is a template &mdash; placeholder contact fields (like email@teach.com) then aren&rsquo;t penalized, since templates carry placeholders by design.</li>
+        <li><b>Add context</b> (optional) &mdash; audience, event, print size &mdash; anything the evaluator should weigh.</li>
+        <li><b>Evaluate.</b> Scoring takes 20&ndash;40 seconds. You get two scores, a composite, a checklist, strengths and gaps, and a prioritized fix list.</li>
+        <li><b>Download the scorecard</b> &mdash; a branded, shareable report of the evaluation (with the artwork embedded). Past evaluations in Recent Evaluations are downloadable too.</li>
+      </ol>
+      <div class="note"><b>Test Connection</b> checks the pipeline: it confirms the evaluation service is live, the AI key is set, and credits are available &mdash; use it first if anything seems off.</div>
+
+      <h3>Score 1 &mdash; Brand Compliance (0&ndash;10)</h3>
+      <div class="crit"><b>Palette fidelity</b><span>The exact brand colors &mdash; nearness matters. Near-black where navy belongs, generic web blue, or crimson instead of the deep brand red all cost points; dominant off-palette colors (yellow, green, teal) cost more.</span></div>
+      <div class="swatches">
+        <span class="sw"><i style="background:#8B0000"></i>#8B0000</span>
+        <span class="sw"><i style="background:#002E5D"></i>#002E5D</span>
+        <span class="sw"><i style="background:#12A7E6"></i>#12A7E6</span>
+        <span class="sw"><i style="background:#F5F5F5"></i>#F5F5F5</span>
+        <span class="sw"><i style="background:#C5C5C5"></i>#C5C5C5</span>
+      </div>
+      <div class="crit"><b>Logo</b><span>Only the two approved lockups: grayscale hash + white TEACH on navy, or red hash + charcoal TEACH on light backgrounds. Script renderings, illustrated variants, or recreated marks are violations.</span></div>
+      <div class="crit"><b>Typography</b><span>Inter Extra Bold (display) and Inter Light (body). Script or decorative fonts are an explicit brand-board violation &mdash; this alone caps an otherwise excellent piece around 8.5.</span></div>
+      <div class="crit"><b>Photography</b><span>Candid, diverse, classroom-centered imagery &mdash; ideally a teacher with students. Posed solo portraits are a minor gap; corporate stock or watermarks are major ones.</span></div>
+      <div class="crit"><b>Contrast &amp; gestalt</b><span>High color contrast (an explicit brand-board tip), and the test: would this be recognizable as #TEACH with the logo covered?</span></div>
+
+      <h3>Score 2 &mdash; Effectiveness (0&ndash;10, varies by format)</h3>
+      <div class="crit"><b>Candidate flyers</b><span>Second-person benefit headline, urgency, a specific low-commitment call to action, response channels (phone, URL, QR), objection handling, social proof, 3-second scannability. District &ldquo;Partner with #TEACH&rdquo; language on a candidate piece breaks the funnel.</span></div>
+      <div class="crit"><b>District (B2B) pieces</b><span>Institutional credibility (CAEP prominent), residency and support infrastructure, differentiators, a partnership CTA with a real contact path. Institutional voice is correct here.</span></div>
+      <div class="crit"><b>Event collateral</b><span>Each format is judged on its job: a banner must stop foot traffic and leave a next step; a card needs the full contact stack; a backdrop&rsquo;s QR can&rsquo;t sit where people stand; a tablecloth must read at career-fair distance.</span></div>
+      <div class="crit"><b>Program documents</b><span>Quality &amp; accuracy: clean one-course-per-row tables, consistent course codes, correct labels, untruncated totals, state fit.</span></div>
+      <div class="crit"><b>Presentations &amp; social</b><span>Narrative arc, per-slide logo consistency, licensed imagery, a closing next step; for social, one clear message and a response path fit for the medium.</span></div>
+
+      <h3 class="red">How the Numbers Work</h3>
+      <ul>
+        <li><b>Composite</b> = the average of the two scores.</li>
+        <li><b>9.0+</b> requires a palette-native structure, zero explicit violations, the correct lockup, and the full effectiveness stack for the format. <b>10</b> is reserved for flawless execution &mdash; true hexes, true Inter, classroom purpose imagery &mdash; and is not awarded casually.</li>
+        <li>Scoring is calibrated to the July 2026 Marketing Collateral Review &mdash; the same pieces score the same numbers here as they did there.</li>
+        <li>The <b>Path to 9&ndash;10</b> lists fixes in impact order with estimated point gains and a projected score; if 9&ndash;10 isn&rsquo;t reachable without a structural rebuild, the ceiling note says so honestly.</li>
+      </ul>
+    </div>
+  </div>
 
 <script>
 /* ================= CONFIG =================
@@ -438,6 +506,12 @@ document.getElementById('hist').addEventListener('click', function(e){
   });
 });
 loadHistory();
+
+var helpModal = document.getElementById('helpmodal');
+document.getElementById('helpopen').addEventListener('click', function(){ helpModal.classList.add('open'); });
+document.getElementById('helpclose').addEventListener('click', function(){ helpModal.classList.remove('open'); });
+helpModal.addEventListener('click', function(e){ if (e.target === helpModal) helpModal.classList.remove('open'); });
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') helpModal.classList.remove('open'); });
 </script>
 </body>
 </html>
